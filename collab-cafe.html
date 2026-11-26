@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>밤부 콜카 계산기!!</title>
+<style>
+:root{--bg:#eef0f6;--ink:#1e2340;--mute:#6b7193;--acc:#e4456e;--acc2:#2a9d8f;--card:#fff;--line:#d5d9e6}
+@media(prefers-color-scheme:dark){:root{--bg:#161a2e;--ink:#eceefb;--mute:#9aa0c3;--card:#222744;--line:#363c63}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Pretendard","Noto Sans KR","Noto Sans TC",system-ui,sans-serif;padding-bottom:150px}
+header{padding:18px 16px 8px;display:flex;justify-content:flex-end;align-items:center;gap:10px;flex-wrap:wrap}
+h1{font-size:20px;margin:0}
+nav{display:flex;gap:clamp(2px,1vw,6px);padding:8px 16px;position:sticky;top:0;background:var(--bg);z-index:5}
+nav button{flex:1 1 auto;padding:10px 4px;border:0;border-bottom:3px solid transparent;background:none;color:var(--mute);font:inherit;font-weight:700;cursor:pointer}
+nav button.on{color:var(--ink);border-color:var(--acc)}
+main{max-width:760px;margin:0 auto;padding:0 16px}
+.tab{display:none}.tab.on{display:block}
+.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.th{width:58px;height:58px;border-radius:10px;flex:none;position:relative;overflow:hidden;display:grid;place-items:center;font-weight:800;font-size:22px;color:rgba(30,35,64,.5)}
+.th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.info{flex:1;min-width:0}.info b{display:block;overflow:hidden;text-overflow:ellipsis}.info small{color:var(--mute)}
+.qty{display:flex;align-items:center;gap:8px}
+.qty button,.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;min-width:34px;height:34px;cursor:pointer;font:inherit;font-weight:700;padding:0 14px}
+.qty button{padding:0}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+#sum{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--ink);padding:12px 16px;z-index:9}
+#sum>div{max-width:760px;margin:0 auto}
+#sum .tot{font-size:22px;font-weight:800}
+.tip{color:var(--mute);font-size:13px;margin:4px 0}
+.chk{display:flex;gap:8px;align-items:center;margin:8px 0;font-size:14px}
+.rc{background:var(--card);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;margin-top:10px}
+.cd{background:var(--card);border-radius:12px;padding:6px;text-align:center;position:relative;cursor:pointer;user-select:none}
+.cd .th{width:100%;height:auto;aspect-ratio:3/4;border-radius:8px}
+.cd .th.sq{aspect-ratio:1}
+.grid{align-items:start}
+.cd.miss .th{filter:grayscale(1);opacity:.45}
+.cd .n{font-size:12px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cd .bd{position:absolute;top:10px;right:10px;background:var(--acc);color:#fff;border-radius:99px;font-size:12px;font-weight:800;padding:0 8px;z-index:2}
+.cd .mn{position:absolute;top:10px;left:10px;z-index:2;border:0;background:rgba(0,0,0,.55);color:#fff;border-radius:99px;width:24px;height:24px;cursor:pointer}
+.cd.off{opacity:.3}
+.cd{-webkit-touch-callout:none;-webkit-user-select:none}
+.cd img{-webkit-user-drag:none;pointer-events:none}
+#tip{position:fixed;left:50%;bottom:28px;transform:translate(-50%,12px);z-index:60;max-width:min(86vw,320px);background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 16px;display:flex;flex-direction:column;gap:2px;text-align:center;font-size:13px;opacity:0;pointer-events:none;transition:.15s}
+#tip.on{opacity:1;transform:translate(-50%,0)}
+#tip span{opacity:.85;font-size:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chips .btn.on{background:var(--ink);color:var(--bg)}
+input[type=text]{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;margin:4px 0 8px}
+canvas{width:100%;border-radius:12px;margin-top:10px;background:#fff}
+h2{font-size:16px;margin:16px 0 4px}.no{width:22px;text-align:right;color:var(--mute);flex:none;font-size:13px}
+.qty{flex-wrap:wrap;justify-content:center}
+.ri{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-top:3px}.ri.fl{background:color-mix(in srgb,var(--acc2) 14%,transparent);border-radius:8px;padding:6px 8px;margin-top:8px}.ri.bn{color:var(--mute);border-top:1px dashed var(--line);padding-top:4px;margin-top:6px}
+.qty .ar{min-width:30px;height:30px;font-size:12px;color:var(--mute)}
+.qty .bk{background:var(--acc2);color:#fff;border-color:var(--acc2);padding:0 10px;min-width:40px}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:8px}
+.ic{background:var(--card);border-radius:12px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.ic .th{width:100%;height:auto;aspect-ratio:1;border-radius:10px;font-size:28px}
+.ic .n{font-size:13px;line-height:1.3;min-height:34px;overflow:hidden;font-weight:700}
+.ic small{color:var(--mute)}.ic.sel{outline:2px solid var(--acc2)}
+nav button{font-size:clamp(9px,3.7vw,14px);white-space:nowrap;min-width:0;padding:10px clamp(2px,1vw,4px)}
+.acc{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 12px;margin-top:8px;font:inherit;font-weight:700;cursor:pointer}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.wd{text-align:center;font-size:12px;color:var(--mute)}
+.day{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+.day .ro{position:absolute;top:4px;left:5px;width:6px;height:6px;border-radius:2px;background:var(--ink)}
+.rnote{background:color-mix(in srgb,var(--ink) 10%,transparent);border-radius:10px;padding:8px 12px;font-size:14px;font-weight:700;margin:6px 0}
+.day.off{opacity:.3;cursor:default}.day.sel{outline:2px solid var(--ink)}
+.day .pc{position:absolute;bottom:5px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--acc)}
+.day .rb{position:absolute;top:3px;right:4px;font-size:11px;background:var(--acc2);color:#fff;border-radius:99px;padding:0 5px}
+.slot{background:var(--card);border-radius:12px;padding:10px 12px;margin:8px 0;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.slot.mine{outline:2px solid var(--acc)}.slot input{flex-basis:100%;margin:0}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--acc2) 18%,transparent)}
+.tag.pc{background:color-mix(in srgb,var(--acc) 20%,transparent)}
+h3{font-size:14px;margin:14px 0 0;color:var(--mute)}
+.row{flex-wrap:wrap}.row .info{flex:1 1 130px}
+.qty{flex-wrap:nowrap;justify-content:flex-end;gap:12px;margin-left:auto}
+.pg{display:flex;gap:4px;width:132px;justify-content:center}
+.qg{display:flex;align-items:center;justify-content:flex-end;gap:8px;width:170px}
+.qg b{min-width:22px;text-align:center}.bkph{width:40px;flex:none}
+.ic .ar{min-width:26px;width:26px;height:26px;padding:0}.ic .pg{gap:3px}
+.ic .qty{flex-wrap:wrap;justify-content:center;gap:6px;margin:0}.ic .pg,.ic .qg{width:auto;justify-content:center}.ic .bkph{display:none}
+.dd{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;height:34px;padding:0 12px;font:inherit;font-weight:700;cursor:pointer}
+.hm{position:relative}
+.hb{border:0;background:none;color:var(--ink);font-size:14px;line-height:1;padding:4px 6px;cursor:pointer}
+.hmenu{position:absolute;right:0;top:30px;z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding:6px 10px 10px;background:var(--bg);box-shadow:0 4px 14px rgba(0,0,0,.08);border-radius:10px;min-width:110px}
+.hmenu[hidden]{display:none}
+.ml{border:0;background:none;color:var(--ink);font:inherit;font-size:15px;padding:6px 4px;cursor:pointer}
+.ml.lg{color:var(--mute);font-size:14px}.ml.lg.on{color:var(--ink);font-weight:800}
+.btn.sm{font-size:12px;height:28px;min-width:0;padding:0 11px}
+@media(max-width:340px){.qty{flex-wrap:wrap;justify-content:flex-end}.qg{width:auto}.pg{width:auto}}
+#vw{flex-wrap:nowrap;gap:clamp(3px,1.2vw,6px)}
+#vw .btn{flex:0 1 auto;min-width:0;white-space:nowrap;font-size:clamp(9px,2.9vw,12px);height:clamp(24px,7vw,28px);padding:0 clamp(6px,2.2vw,11px)}
+html[lang=en] nav button{font-size:clamp(8px,2.9vw,14px)}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:none;color:var(--mute);font:inherit;font-size:13px;font-weight:700;padding:5px 12px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--ink);color:var(--bg)}
+#flt{flex-wrap:nowrap;gap:8px}
+#csel .dd,#xsel>.dd{border-radius:10px;height:36px;font-size:13px}
+#xsel{flex-wrap:nowrap;gap:8px;align-items:center}
+.xfmt{position:relative}
+.xfmt select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+#cflt,#xflt{display:flex;flex-wrap:wrap;gap:6px}
+#cflt .btn,#xflt .btn{flex:1 1 auto;height:clamp(28px,8vw,34px);min-width:0;padding:0 clamp(8px,2.6vw,14px);border-radius:99px;display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;font-size:clamp(10px,3.1vw,13px)}
+#cflt .btn small,#xflt .btn small{font-size:.85em;font-weight:600;opacity:.7}
+html[lang=en] #cflt .btn,html[lang=en] #xflt .btn{font-size:clamp(9px,2.7vw,12px);padding:0 clamp(6px,2vw,12px);gap:3px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hm">
+    <button class="hb" id="hbtn" aria-label="menu" onclick="toggleMenu(event)">☰</button>
+    <div class="hmenu" id="hmenu" hidden>
+      <button class="ml" onclick="saveData()" data-i="save"></button>
+      <button class="ml" onclick="pickFile()" data-i="load"></button>
+      <input type="file" id="ifile" accept="application/json,.json" hidden>
+      <button class="ml lg" data-l="ko">한국어</button>
+      <button class="ml lg" data-l="zh">繁體中文</button>
+      <button class="ml lg" data-l="en">English</button>
+    </div>
+  </div>
+</header>
+<nav><button data-t="calc" data-i="tabCalc"></button><button data-t="col" data-i="tabCol"></button><button data-t="ex" data-i="tabEx"></button><button data-t="cal" data-i="tabCal"></button></nav>
+<main>
+  <section class="tab" id="calc">
+    <div class="chips" id="vw"></div>
+    <div id="gacc"></div>
+    <div id="goods"></div>
+    <div id="menu"></div>
+    <div id="prio"></div>
+  </section>
+  <section class="tab" id="col">
+    <div class="chips" id="cflt"></div>
+    <div class="chips" id="flt" style="justify-content:flex-end;align-items:center"></div>
+    <div class="grid" id="cgrid"></div>
+  </section>
+  <section class="tab" id="cal">
+    <div class="chips" id="mhead"></div>
+    <div class="cg" id="cg"></div>
+    <div id="dayp"></div>
+    <div id="myres"></div>
+  </section>
+  <section class="tab" id="ex">
+    <div id="xsel" style="display:flex;justify-content:flex-end"></div>
+    <div class="chips" id="xflt"></div>
+    <input type="text" id="hdl" data-p="handle">
+    <input type="text" id="note" data-p="note">
+    <h2 data-i="give"></h2><div class="grid" id="exg"></div>
+    <h2 data-i="want" id="hw"></h2><div class="grid" id="exw"></div>
+    <canvas id="cv"></canvas>
+    <p><button class="btn pri" onclick="dl()" data-i="download"></button></p>
+  </section>
+</main>
+<div id="sum"><div></div></div>
+
+<script>
+/* ===== 여기만 고치면 돼 / EDIT HERE ===== */
+const CFG={
+  currency:'₩',                       // 통화 기호
+  title:{ko:'밤부 콜카 계산기!!',zh:'聯名咖啡廳 周邊計算機',en:'Collab Cafe Goods Calculator'},
+  units:[50000,200000],               // 결제 나누기 기준 금액 선택지
+  unit:200000,                        // 결제 N원마다 끊기 (이 금액 단위로 영수증을 나눠줘)
+  /* MD(굿즈) 구매 금액당 증정. 결제 건별로 floor(금액 / per) 계산 */
+  bonus:[
+    {per:10000,name:{ko:'일러스트 엽서 (16종)',zh:'插畫明信片（16款）',en:'Illustration postcard (16 types)'}},
+    {per:50000,name:{ko:'일러스트 포스터 (4종)',zh:'插畫海報（4款）',en:'Illustration poster (4 types)'}}
+  ],
+  /* 굿즈: 이미지는 img/g01.png ~ g19.png (없으면 임시 썸네일) */
+  goods:[
+    {id:'g1',price:29000,img:'img/g01.png',name:{ko:'듀얼 북엔드 아크릴 스탠드',zh:'雙面書擋壓克力立牌',en:'Dual bookend acrylic stand'}},
+    {id:'g2',price:4500,img:'img/g02.png',name:{ko:'시리즈 포토카드 (랜덤 3종)',zh:'系列小卡（隨機3張）',en:'Series photocard (random 3)'}},
+    {id:'g3',price:53000,img:'img/g03.png',name:{ko:'밤부 포토카드 확정팩 - 보드게임 에디션',zh:'밤부 確定小卡組 - 桌遊版',en:'Bamboo photocard set - Board game edition'}},
+    {id:'g4',price:4500,img:'img/g04.png',name:{ko:'꾸금 포토카드 (랜덤 3종)',zh:'꾸금 小卡（隨機3張）',en:'꾸금 photocard (random 3)'}},
+    {id:'g5',price:50000,img:'img/g05.png',name:{ko:'꾸금 포카 12팩 + 렌티큘러 패키지 (렌티큘러 3종 중 1종 랜덤)',zh:'꾸금 小卡12包＋變換卡組（3款隨機1款）',en:'꾸금 12 card packs + lenticular package (1 of 3 random)'}},
+    {id:'g6',price:20000,img:'img/g06.png',name:{ko:'희재 착붙 자석 커플 키링 세트',zh:'희재 磁吸情侶吊飾組',en:'Heejae magnetic couple keyring set'}},
+    {id:'g7',price:32000,img:'img/g07.png',name:{ko:'자기양♥ 커플 머그컵 세트 (스티커 2종 포함)',zh:'情侶馬克杯組（含貼紙2款）',en:'Couple mug set (incl. 2 stickers)'}},
+    {id:'g8',bulk:2,price:13000,img:'img/g08.png',name:{ko:'희재·우진 신분 세트 (개당)',zh:'희재·우진 身分證組（單組）',en:'Heejae/Ujin ID set (each)'}},
+    {id:'g9',price:30000,img:'img/g09.png',name:{ko:'밤부 아크릴 무드등',zh:'밤부 壓克力氛圍燈',en:'Bamboo acrylic mood light'}},
+    {id:'g10',bulk:8,price:6000,img:'img/g10.png',name:{ko:'랜덤 아크릴 히퍼 8종 (개당)',zh:'隨機壓克力 히퍼 8款（單個）',en:'Random acrylic hipper, 8 types (each)'}},
+    {id:'g11',bulk:2,price:16000,img:'img/g11.png',name:{ko:'희재/우진 캐릭터 옷걸이 (개당)',zh:'희재/우진 角色衣架（單個）',en:'Heejae/Ujin character hanger (each)'}},
+    {id:'g12',price:20000,img:'img/g12.png',name:{ko:'목욕탕 아크릴 코스터',zh:'澡堂壓克力杯墊',en:'Bathhouse acrylic coaster'}},
+    {id:'g13',price:11000,img:'img/g13.png',name:{ko:'나폴레옹 마그넷 세트',zh:'拿破崙磁鐵組',en:'Napoleon magnet set'}},
+    {id:'g14',price:12000,img:'img/g14.png',name:{ko:'엽서 세트',zh:'明信片組',en:'Postcard set'}},
+    {id:'g15',price:27000,img:'img/g15.png',name:{ko:'바인더 세트',zh:'收集冊組',en:'Binder set'}},
+    {id:'g16',price:11000,img:'img/g16.png',name:{ko:'따뜻한 밤 핫팩 파우치 세트',zh:'溫暖夜晚 暖暖包袋組',en:'Warm night heat-pack pouch set'}},
+    {id:'g17',bulk:2,price:27000,img:'img/g17.png',name:{ko:'(예약) 인형 키링 2종 (개당)',zh:'(預約) 玩偶吊飾 2款（單個）',en:'(Pre-order) Plush keyring, 2 types (each)'}},
+    {id:'g18',bulk:2,price:15000,img:'img/g18.png',name:{ko:'(예약) 수면 안대 2종 (개당)',zh:'(預約) 眼罩 2款（單個）',en:'(Pre-order) Sleep mask, 2 types (each)'}},
+    {id:'g19',price:78000,img:'img/g19.png',name:{ko:'(예약) 희재의 일방적 커플 잠옷',zh:'(預約) 희재 的單方面情侶睡衣',en:'(Pre-order) Heejae\'s one-sided couple pajamas'}}
+  ],
+  /* 콜카 일정: open~close 사이에 step분 간격으로 시작, minutes분 이용. 금(5)·토(6)은 pochaFrom 이후 타임이 밤부포차 */
+  sched:{start:'2026-12-03',end:'2027-01-03',open:'11:00',step:120,minutes:80,close:{def:'20:20',5:'22:20',6:'22:20'},pochaDays:[5,6],pochaFrom:'17:00',closed:[],resOnly:{from:'2026-12-03',to:'2026-12-06'}},
+  cats:[
+    {id:'e',name:{ko:'예약 특전',zh:'預約特典',en:'Reservation bonus'}},
+    {id:'md',name:{ko:'MD 특전',zh:'MD 特典',en:'MD bonus'}},
+    {id:'gb',name:{ko:'굿즈 부록',zh:'周邊附錄',en:'Goods extras'}},
+    {id:'hp',name:{ko:'히퍼',zh:'히퍼',en:'Hipper'}},
+    {id:'s',name:{ko:'시리즈',zh:'系列',en:'Series'}},
+    {id:'k',name:{ko:'꾸금',zh:'꾸금',en:'꾸금'}},
+    {id:'cafe',name:{ko:'카페 메뉴',zh:'咖啡廳餐點',en:'Cafe menu'}},
+    {id:'pocha',name:{ko:'밤부포차',zh:'밤부포차',en:'밤부포차'}},
+    {id:'stamp',name:{ko:'스탬프 미션',zh:'集章任務',en:'Stamp mission'}}
+  ],
+  /* 포토카드: 시리즈 30종 + 꾸금 20종 자동 생성. 이미지는 img/s01.png ~ s30.png, img/k01.png ~ k20.png */
+  cards:[
+    {cat:'e',id:'e1',img:'img/e1.png',name:{ko:'예약 1주차',zh:'預約 第1週',en:'Reservation Week 1'}},
+    {cat:'e',id:'e2',img:'img/e2.png',name:{ko:'예약 2주차',zh:'預約 第2週',en:'Reservation Week 2'}},
+    {cat:'e',id:'e3',img:'img/e3.png',name:{ko:'예약 3주차',zh:'預約 第3週',en:'Reservation Week 3'}},
+    {cat:'e',id:'e4',img:'img/e4.png',name:{ko:'예약 밤부포차',zh:'預約 밤부포차',en:'Reservation 밤부포차'}},
+    ...Array.from({length:30},(_,i)=>{const n=String(i+1).padStart(2,'0');return {cat:'s',id:'s'+n,img:'img/s'+n+'.png',name:{ko:'시리즈 '+n,zh:'系列 '+n,en:'Series '+n}}}),
+    ...Array.from({length:20},(_,i)=>{const n=String(i+1).padStart(2,'0');return {cat:'k',id:'k'+n,img:'img/k'+n+'.png',name:{ko:'꾸금 '+n,zh:'꾸금 '+n,en:'꾸금 '+n}}}),
+    /* 카페 메뉴 코스터 8종 (정사각형): img/c01.png ~ c08.png */
+    ...Array.from({length:8},(_,i)=>{const n=String(i+1).padStart(2,'0');return {cat:'cafe',sq:true,id:'co'+(i+1),img:'img/c'+n+'.png',name:{ko:'코스터 '+(i+1),zh:'杯墊 '+(i+1),en:'Coaster '+(i+1)}}}),
+    /* 스탬프 미션: 스티커 3종(정사각형) img/st01.png ~ st03.png, 포카 6종 img/sp01.png ~ sp06.png */
+    ...Array.from({length:3},(_,i)=>{const n=String(i+1).padStart(2,'0');return {cat:'stamp',sq:true,id:'st'+(i+1),img:'img/st'+n+'.png',name:{ko:'스티커 '+(i+1),zh:'貼紙 '+(i+1),en:'Sticker '+(i+1)}}}),
+    ...Array.from({length:6},(_,i)=>{const n=String(i+1).padStart(2,'0');return {cat:'stamp',id:'sp'+(i+1),img:'img/sp'+n+'.png',name:{ko:'스탬프 포카 '+(i+1),zh:'集章小卡 '+(i+1),en:'Stamp card '+(i+1)}}}),
+    /* MD 특전: 일러스트 엽서 16종 img/pc01.png ~ pc16.png, 일러스트 포스터 4종 img/ps01.png ~ ps04.png */
+    ...Array.from({length:16},(_,i)=>{const n=String(i+1).padStart(2,'0');return {cat:'md',id:'pc'+(i+1),img:'img/pc'+n+'.png',name:{ko:'일러스트 엽서 '+(i+1),zh:'插畫明信片 '+(i+1),en:'Illustration postcard '+(i+1)}}}),
+    ...Array.from({length:4},(_,i)=>{const n=String(i+1).padStart(2,'0');return {cat:'md',id:'ps'+(i+1),img:'img/ps'+n+'.png',name:{ko:'일러스트 포스터 '+(i+1),zh:'插畫海報 '+(i+1),en:'Illustration poster '+(i+1)}}}),
+    /* 굿즈 부록 포카 9종: img/gb01.png ~ gb09.png */
+    ...Array.from({length:9},(_,i)=>{const n=String(i+1).padStart(2,'0');return {cat:'gb',id:'gb'+(i+1),img:'img/gb'+n+'.png',name:{ko:'굿즈 부록 포카 '+(i+1),zh:'周邊附錄小卡 '+(i+1),en:'Goods extras card '+(i+1)}}}),
+    /* 히퍼 8종: img/hp01.png ~ hp08.png */
+    ...Array.from({length:8},(_,i)=>{const n=String(i+1).padStart(2,'0');return {cat:'hp',id:'hp'+(i+1),img:'img/hp'+n+'.png',name:{ko:'히퍼 '+(i+1),zh:'히퍼 '+(i+1),en:'Hipper '+(i+1)}}})
+  ],
+  /* 식음료 (참고용, 특전 계산 제외). group: cafe | pocha */
+  menu:[
+    {id:'m1',group:'cafe',price:16000,img:'img/m01.png',name:{ko:'빅멕 세트',zh:'빅멕 套餐',en:'빅멕 Set'}},
+    {id:'m2',group:'cafe',price:6500,img:'img/m02.png',name:{ko:'아메리카노',zh:'美式咖啡',en:'Americano'}},
+    {id:'m3',group:'cafe',price:7000,img:'img/m03.png',name:{ko:'귤홍차',zh:'橘子紅茶',en:'Tangerine black tea'}},
+    {id:'m4',group:'cafe',price:7000,img:'img/m04.png',name:{ko:'블루베리 에이드',zh:'藍莓氣泡飲',en:'Blueberry ade'}},
+    {id:'m5',group:'cafe',price:7000,img:'img/m05.png',name:{ko:'딸기 크림 라떼',zh:'草莓奶油拿鐵',en:'Strawberry cream latte'}},
+    {id:'m6',group:'cafe',price:8000,img:'img/m06.png',name:{ko:'사과 팬케이크',zh:'蘋果鬆餅',en:'Apple pancake'}},
+    {id:'m7',group:'cafe',price:9000,img:'img/m07.png',name:{ko:'몽블랑(MONT BLANC)',zh:'蒙布朗',en:'Mont Blanc'}},
+    {id:'m8',group:'cafe',price:7000,img:'img/m08.png',name:{ko:'귤 요거트',zh:'橘子優格',en:'Tangerine yogurt'}},
+    {id:'m9',group:'cafe',price:3000,img:'img/m09.png',name:{ko:'희재·우진 쿠키 (개당)',zh:'희재·우진 餅乾（單個）',en:'Heejae/Ujin cookie (each)'}},
+    {id:'p1',group:'pocha',price:17000,img:'img/p01.png',name:{ko:'떡볶이 세트',zh:'辣炒年糕套餐',en:'Tteokbokki set'}},
+    {id:'p2',group:'pocha',price:12000,img:'img/p02.png',name:{ko:'복분자 하이볼',zh:'覆盆子調酒',en:'Bokbunja highball'}},
+    {id:'p3',group:'pocha',price:9000,img:'img/p03.png',name:{ko:'딸기 막걸리',zh:'草莓馬格利',en:'Strawberry makgeolli'}},
+    {id:'p4',group:'pocha',price:14000,img:'img/p04.png',name:{ko:'선우,진 토닉',zh:'선우,진 通寧',en:'선우,진 tonic'}},
+    {id:'p5',group:'pocha',price:8000,img:'img/p05.png',name:{ko:'무알콜 맥주',zh:'無酒精啤酒',en:'Non-alcoholic beer'}},
+    {id:'p6',group:'pocha',price:12000,img:'img/p06.png',name:{ko:'보드게임 단짝, 마른안주',zh:'桌遊好夥伴 乾貨下酒菜',en:'Board game buddy, dry snacks'}},
+    {id:'p7',group:'pocha',price:14000,img:'img/p07.png',name:{ko:'오돌뼈 주먹밥',zh:'脆骨飯糰',en:'Chewy pork cartilage rice ball'}},
+    {id:'p8',group:'pocha',price:10000,img:'img/p08.png',name:{ko:'콘치즈 크래커',zh:'玉米起司餅乾',en:'Corn cheese crackers'}}
+  ]
+};
+/* 식음료 메뉴마다 포카 1종이 딸려온다고 가정하고 자동 생성 (이미지: img/fm01.png, fp01.png ...) */
+CFG.menu.forEach(m=>CFG.cards.push({cat:m.group,id:'f'+m.id,img:m.img.replace('img/','img/f'),name:{ko:m.name.ko+' 포카',zh:m.name.zh+' 小卡',en:m.name.en+' card'},src:{ko:m.name.ko+' 주문 시 증정',zh:'點購 '+m.name.zh+' 時贈送',en:'With an order of '+m.name.en}}));
+/* ===== 번역 ===== */
+const L={
+ko:{prioNote:'설정한 우선순위가 반영됩니다.',fmt:'양식',mGive:'양도',mTrade:'교환',srcL:'획득처',goodsL:'굿즈 목록',buyAll:'다 살래',save:'저장',load:'불러오기',loadAsk:'저장 파일로 현재 기록을 덮어쓸까?',loadErr:'불러오기 실패: 올바른 저장 파일이 아니야.',saveErr:'저장에 실패했어.',rowN:'{n}장',perRow:'한 줄에',top:'맨 위로',bottom:'맨 아래로',prLabel:'우선순위',cntLabel:'갯수',slotN:'{n}타임',resOnly:'12/3~12/6 예약자만 이용 가능',tabCal:'일정 달력',calInfo:'12/3~1/3 운영. 월~목·일 11:00~20:20, 금·토 11:00~22:20. 1시간 20분 이용이고, 금·토 17시 타임부터 밤부포차야. 빨간 점은 밤부포차 운영일.',slotCafe:'카페',slotPocha:'포차',book:'예약 추가',booked:'내 예약',memoPh:'메모 (인원, 예약번호 등)',myRes:'내 예약 목록',noRes:'아직 예약이 없어. 날짜를 누르고 타임을 골라줘.',closedDay:'운영 기간이 아니야.',bonusNote:'MD(굿즈) 구매 금액 기준이고, 결제 건별로 계산해. 식음료는 제외.',vList:'목록',vIcon:'아이콘',fnb:'식음료 메뉴',fnbNote:'참고용이야. 특전 금액에는 포함되지 않아.',cafe:'카페 메뉴',pocha:'밤부포차 (금·토 저녁 운영)',fsum:'식음료',grand:'굿즈 + 식음료',tabCalc:'굿즈 계산기',tabCol:'컬렉팅판',tabEx:'교환판',calcHint:'굿즈 수량을 고르고 우선순위를 정하면, 그 순서대로 {u}씩 끊어서 결제를 나눠줘.',prio:'우선순위',prioHint:'▲▼로 굿즈를 위아래로 옮겨서 우선순위를 정해. 위에 있을수록 먼저 담아서 {u}씩 결제를 나눠줘.',up:'위로',down:'아래로',prClear:'우선순위 초기화',prioEmpty:'굿즈를 고르면 여기서 우선순위를 정할 수 있어.',byPrice:'가격 높은 순',rcDone:'건 완성',toUnit:'다음 {u}까지',perReceipt:'특전은 결제(영수증) 1건당 지급',reset:'수량 초기화',total:'합계',none:'받는 특전 없음',next:'다음 특전까지',fill:'가장 알뜰하게 채우는 조합',short:'부족',exact:'초과',rcs:'결제 나누기 추천 조합',rcN:'결제',colHint:'탭하면 +1, 왼쪽 위 − 버튼으로 −1',owned:'보유',all:'전체',miss:'미보유',dup:'중복',exHint:'중복 카드는 양도, 미보유 카드는 구함으로 자동 반영돼. 카드를 탭하면 제외/포함.',handle:'트위터 아이디 (@...)',note:'메모 (예: 직거래 가능, 우편 OK)',give:'양도',want:'구함',download:'이미지 저장',left:'남음',pcs:'개',empty:'없음',err:'이미지 저장 실패: 이미지를 같은 서버(상대경로)에 올려야 해.'},
+zh:{prioNote:'將依照設定的優先順序計算。',fmt:'格式',mGive:'出讓',mTrade:'交換',srcL:'取得方式',goodsL:'周邊清單',buyAll:'全都買',save:'儲存',load:'讀取',loadAsk:'要用存檔覆蓋目前的紀錄嗎？',loadErr:'讀取失敗：不是有效的存檔。',saveErr:'儲存失敗。',rowN:'{n}張',perRow:'每列',top:'移到最上',bottom:'移到最下',prLabel:'優先順序',cntLabel:'數量',slotN:'第{n}場',resOnly:'12/3～12/6 僅限預約者使用',tabCal:'活動日程',calInfo:'12/3～1/3 營業。週一至週四、週日 11:00～20:20，週五、六 11:00～22:20。每場用餐 1 小時 20 分，週五、六 17 點場起為 밤부포차。紅點為 밤부포차 營業日。',slotCafe:'咖啡廳',slotPocha:'포차',book:'新增預約',booked:'我的預約',memoPh:'備註（人數、預約編號等）',myRes:'我的預約列表',noRes:'尚無預約。請點選日期並選擇時段。',closedDay:'非營業期間。',bonusNote:'以周邊購買金額計算，依每筆結帳分別計算，不含餐飲。',vList:'列表',vIcon:'圖示',fnb:'餐飲菜單',fnbNote:'僅供參考，不計入特典金額。',cafe:'咖啡廳菜單',pocha:'밤부포차（週五、六晚間營業）',fsum:'餐飲',grand:'周邊＋餐飲',tabCalc:'周邊計算機',tabCol:'收集板',tabEx:'交換板',calcHint:'選好周邊數量並排好優先順序後，會依序每 {u} 分成一筆結帳。',prio:'優先順序',prioHint:'用 ▲▼ 上下移動周邊來決定優先順序。越上面越先放入，並每 {u} 分成一筆結帳。',up:'上移',down:'下移',prClear:'重設優先順序',prioEmpty:'選擇周邊後，可在此設定優先順序。',byPrice:'價格由高到低',rcDone:'筆達標',toUnit:'距離下一個 {u} 還差',perReceipt:'特典以每筆結帳（收據）計算',reset:'重設數量',total:'合計',none:'尚未達到特典',next:'距離下一個特典還差',fill:'最划算的湊單組合',short:'不足',exact:'超出',rcs:'建議分單組合',rcN:'結帳',colHint:'點一下 +1，左上角 − 按鈕 −1',owned:'已有',all:'全部',miss:'未持有',dup:'重複',exHint:'重複的卡會自動列入「出」，未持有的列入「徵」。點卡片可排除／加入。',handle:'Twitter 帳號 (@...)',note:'備註（例：可面交、可郵寄）',give:'出',want:'徵',download:'儲存圖片',left:'剩餘',pcs:'個',empty:'無',err:'圖片儲存失敗：請將圖片放在同一個伺服器（相對路徑）。'},
+en:{prioNote:'Your priority order is applied.',fmt:'Format',mGive:'Give away',mTrade:'Trade',srcL:'Source',goodsL:'Goods list',buyAll:'Buy all',save:'Save',load:'Load',loadAsk:'Overwrite your current data with this file?',loadErr:'Could not load: not a valid save file.',saveErr:'Could not save.',rowN:'{n}',perRow:'Per row',top:'Move to top',bottom:'Move to bottom',prLabel:'Priority',cntLabel:'Qty',slotN:'Slot {n}',resOnly:'Dec 3–6: reservation holders only',tabCal:'Schedule',calInfo:'Open Dec 3 – Jan 3. Mon–Thu & Sun 11:00–20:20, Fri & Sat 11:00–22:20. Each seating is 1 h 20 min; from the 17:00 seating on Fri & Sat it is the 밤부포차. Red dot = 밤부포차 days.',slotCafe:'Cafe',slotPocha:'포차',book:'Add booking',booked:'My booking',memoPh:'Note (party size, booking no., etc.)',myRes:'My bookings',noRes:'No bookings yet. Tap a date and pick a seating.',closedDay:'Not open on this date.',bonusNote:'Based on merch (goods) spending, calculated per receipt. Food & drinks excluded.',vList:'List',vIcon:'Icons',fnb:'Food & drinks',fnbNote:'For reference only. Not counted toward perk amounts.',cafe:'Cafe menu',pocha:'밤부포차 (Fri & Sat evenings)',fsum:'Food & drinks',grand:'Goods + food & drinks',tabCalc:'Goods calculator',tabCol:'Collecting board',tabEx:'Trade board',calcHint:'Pick quantities and rank them. They are split into {u} receipts in that order.',prio:'Priority',prioHint:'Use ▲▼ to move goods up or down to set priority. Higher items are added first, split into {u} receipts.',up:'Move up',down:'Move down',prClear:'Reset priority',prioEmpty:'Pick goods to set their priority here.',byPrice:'Price high to low',rcDone:'receipts complete',toUnit:'Until next {u}',perReceipt:'Perks are given per purchase (receipt)',reset:'Reset quantities',total:'Total',none:'No perk yet',next:'Until next perk',fill:'Cheapest way to fill the gap',short:'Short by',exact:'Over by',rcs:'Suggested receipt split',rcN:'Receipt',colHint:'Tap to add 1, use the − button (top left) to remove 1',owned:'Owned',all:'All',miss:'Missing',dup:'Duplicates',exHint:'Duplicates go to “Have”, missing cards go to “Want”. Tap a card to exclude or include it.',handle:'Twitter handle (@...)',note:'Note (e.g. meetup OK, mail OK)',give:'Have',want:'Want',download:'Save image',left:'left',pcs:'pcs',empty:'None',err:'Could not save: host the images on the same server (relative paths).'}
+};
+/* ===== 상태 ===== */
+let lang=localStorage.getItem('cc_lang')||'ko',S={cat:'all',fq:{},qty:{},have:{},ex:{},perR:false,flt:'all'};
+try{Object.assign(S,JSON.parse(localStorage.getItem('cc_s')||'{}'))}catch(e){}
+const $=id=>document.getElementById(id),t=k=>((L[lang]&&L[lang][k])||L.ko[k]||k).replace('{u}',money(S.unit||CFG.unit)),nm=o=>o[lang]||o.ko;
+const save=()=>{try{localStorage.setItem('cc_s',JSON.stringify(S));localStorage.setItem('cc_lang',lang)}catch(e){}};
+const money=n=>CFG.currency+n.toLocaleString();
+const hue=s=>[...s].reduce((a,c)=>a+c.charCodeAt(0)*37,0)%360;
+const th=o=>`<div class="th${o.sq?' sq':''}" style="background:hsl(${hue(o.id)} 60% 86%)">${nm(o.name).slice(0,2)}${o.img?`<img src="${o.img}" alt="" onerror="this.remove()">`:''}</div>`;
+
+/* ===== 계산기 ===== */
+function total(){return CFG.goods.reduce((a,g)=>a+g.price*(S.qty[g.id]||0),0)}
+function setQ(id,d){S.qty[id]=Math.max(0,(S.qty[id]||0)+d);save();renderCalc()}
+function togG(){S.mo=S.mo||{};S.mo.goods=(S.mo.goods===false);save();renderCalc()}
+function togM(g){S.mo=S.mo||{};S.mo[g]=!S.mo[g];save();renderCalc()}
+function setV(v){S.view=v;save();renderCalc()}
+function setM(id,d){S.fq[id]=Math.max(0,(S.fq[id]||0)+d);save();renderCalc()}
+function ftot(){return CFG.menu.reduce((a,m)=>a+m.price*(S.fq[m.id]||0),0)}
+function resetQty(){S.qty={};S.fq={};save();renderCalc()}
+function fillSet(gap){ // gap 이상을 가장 적게 초과하는 조합 (무한 배낭)
+  const ps=CFG.goods.map(g=>g.price),gc=ps.reduce(function f(a,b){return b?f(b,a%b):a}),mx=Math.max(...ps),lim=Math.ceil(gap/gc)+Math.ceil(mx/gc);
+  const par=new Array(lim+1).fill(-1);par[0]=-2;
+  for(let s=1;s<=lim;s++)for(let i=0;i<ps.length;i++){const p=ps[i]/gc;if(s>=p&&par[s-p]!==-1){par[s]=i;break}}
+  for(let s=Math.ceil(gap/gc);s<=lim;s++)if(par[s]!==-1){const c={};let x=s;while(x>0){const i=par[x];c[i]=(c[i]||0)+1;x-=ps[i]/gc}return{sum:s*gc,c}}
+  return null;
+}
+function ord(){const o=(S.order||[]).filter(id=>CFG.goods.some(g=>g.id===id));CFG.goods.forEach(g=>{if(!o.includes(g.id))o.push(g.id)});return o}
+function mvEnd(id,top){const o=ord().filter(k=>k!==id);top?o.unshift(id):o.push(id);S.order=o;save();renderCalc()}
+function mv(id,d){const o=ord(),i=o.indexOf(id),j=i+d;if(j<0||j>=o.length)return;[o[i],o[j]]=[o[j],o[i]];S.order=o;save();renderCalc()}
+function buyAll(){CFG.goods.forEach(g=>{S.qty[g.id]=(S.qty[g.id]||0)+(g.bulk||1)});CFG.menu.forEach(m=>{S.fq[m.id]=(S.fq[m.id]||0)+1});save();renderCalc()}
+function clearPrio(){S.order=null;save();renderCalc()}
+function setU(u){S.unit=u;save();renderCalc()}
+function split(){const U=S.unit||CFG.unit,pool=[];ord().forEach(id=>{const g=CFG.goods.find(x=>x.id===id);for(let i=0;i<(S.qty[id]||0);i++)pool.push(g)});const R=[];let r={items:[],sum:0};pool.forEach(g=>{r.items.push(g);r.sum+=g.price;if(r.sum>=U){R.push(r);r={items:[],sum:0}}});if(r.items.length)R.push(r);return R}
+function renderCalc(){
+  const tot=total(),U=S.unit||CFG.unit,ic=S.view==='icon',cls=ic?'igrid':'';
+  const it=(o,fn,q,no)=>{const bk=o.bulk?`<button class="bk" onclick="${fn}('${o.id}',${o.bulk})">+${o.bulk}</button>`:'';const pri=fn==='setQ'?`<button class="ar" onclick="mvEnd('${o.id}',true)" title="${t('top')}">⤒</button><button class="ar" onclick="mv('${o.id}',-1)" title="${t('up')}">▲</button><button class="ar" onclick="mv('${o.id}',1)" title="${t('down')}">▼</button><button class="ar" onclick="mvEnd('${o.id}',false)" title="${t('bottom')}">⤓</button>`:'';const ctl=`<div class="qty">${pri?`<div class="pg">${pri}</div>`:''}<div class="qg">${fn==='setQ'?(bk||'<span class="bkph"></span>'):bk}<button onclick="${fn}('${o.id}',-1)">−</button><b>${q}</b><button onclick="${fn}('${o.id}',1)">+</button></div></div>`;const nn=no?no+'. ':'';return ic?`<div class="ic ${q?'sel':''}">${th(o)}<div class="n">${nn}${nm(o.name)}</div><small>${money(o.price)}</small>${ctl}</div>`:`<div class="row">${no?`<b class="no">${no}</b>`:''}${th(o)}<div class="info"><b>${nm(o.name)}</b><small>${money(o.price)}</small></div>${ctl}</div>`};
+  $('vw').innerHTML=`<button class="btn sm vs" onclick="setV('${ic?'list':'icon'}')" aria-label="${ic?t('vList'):t('vIcon')}">${ic?t('vList'):t('vIcon')}</button><button class="btn sm" style="margin-left:auto" onclick="buyAll()">${t('buyAll')}</button><button class="btn sm" onclick="resetQty()">${t('reset')}</button><button class="btn sm" onclick="clearPrio()">${t('prClear')}</button>`;
+  const gopen=!(S.mo&&S.mo.goods===false),gn=CFG.goods.reduce((a,g)=>a+(S.qty[g.id]||0),0);
+  $('gacc').innerHTML=`<button class="acc" onclick="togG()">${gopen?'▼':'▶'} ${t('goodsL')}${gn?' · '+gn:''}</button>`;
+  $('goods').style.display=gopen?'':'none';
+  $('goods').className=cls;
+  $('goods').innerHTML=ord().map(id=>it(CFG.goods.find(g=>g.id===id),'setQ',S.qty[id]||0,CFG.goods.findIndex(g=>g.id===id)+1)).join('');
+  const R=split(),done=R.filter(r=>r.sum>=U).length,last=R[R.length-1],gap=last&&last.sum<U?U-last.sum:0;
+  let html=`<div class="tot">${t('total')} ${money(tot)}</div>`;
+  if(tot){html+=`<div>${done} ${t('rcDone')}</div>`;
+    html+=`<div>${CFG.bonus.map(b=>nm(b.name)+' '+R.reduce((a,r)=>a+Math.floor(r.sum/b.per),0)+t('pcs')).join(' / ')}</div>`}
+  const ft=ftot();if(ft)html+=`<div class="tip">${t('fsum')} ${money(ft)} · <b>${t('grand')} ${money(tot+ft)}</b></div>`;
+  $('sum').firstElementChild.innerHTML=html;
+  {const open=S.mo&&S.mo.split;let p=`<button class="acc" onclick="togM('split')">${open?'▼':'▶'} ${t('rcs')}</button>`;
+  if(open){p+=`<div class="tip" style="font-size:11px;margin:2px 0 0">${t('prioNote')}</div><div class="chips">${CFG.units.map(u=>`<button class="btn ${U===u?'on':''}" onclick="setU(${u})">${money(u)}</button>`).join('')}</div>`;
+    if(tot)p+=R.map((r,i)=>{const c={};r.items.forEach(g=>c[g.id]=(c[g.id]||0)+1);const ok=r.sum>=U;
+      return `<div class="rc"><b>${t('rcN')} ${i+1} · ${money(r.sum)}</b> <small>${ok?(r.sum>U?t('exact')+' '+money(r.sum-U):''):t('short')+' '+money(U-r.sum)}</small>`+Object.keys(c).map(id=>{const g=CFG.goods.find(x=>x.id===id);return `<div class="ri"><span>${nm(g.name)} ×${c[id]}</span><span>${money(g.price*c[id])}</span></div>`}).join('')+(()=>{if(ok||i!==R.length-1)return '';const f=fillSet(U-r.sum);return f?`<div class="ri fl"><span>${t('fill')}: ${Object.keys(f.c).map(k=>nm(CFG.goods[k].name)+' ×'+f.c[k]).join(', ')}</span><span>${t('exact')} ${money(f.sum-(U-r.sum))}</span></div>`:''})()+`<div class="ri bn">${CFG.bonus.map(b=>nm(b.name).replace(/ ?[（(].*$/,'')+' '+Math.floor(r.sum/b.per)+t('pcs')).join(' / ')}</div></div>`}).join('')}
+  $('prio').innerHTML=p}
+  const mg=g=>`<div class="${cls}">`+CFG.menu.filter(m=>m.group===g).map(m=>it(m,'setM',S.fq[m.id]||0)).join('')+'</div>';
+  $('menu').innerHTML=['cafe','pocha'].map(g=>{const open=S.mo&&S.mo[g],n=CFG.menu.filter(m=>m.group===g).reduce((a,m)=>a+(S.fq[m.id]||0),0);return `<button class="acc" onclick="togM('${g}')">${open?'▼':'▶'} ${t(g)}${n?' · '+n:''}</button>`+(open?mg(g):'')}).join('');
+}
+
+/* ===== 포카 현황 ===== */
+const have=id=>S.have[id]||0;
+function bump(id,d,e){if(e)e.stopPropagation();S.have[id]=Math.max(0,have(id)+d);save();renderCol();renderEx()}
+const SRC={e:{ko:'예약 특전',zh:'預約特典',en:'Reservation bonus'},cafe:{ko:'카페 메뉴 랜덤 증정',zh:'咖啡廳餐點 隨機贈送',en:'Cafe menu (random gift)'},stamp:{ko:'스탬프 미션 보상',zh:'集章任務獎勵',en:'Stamp mission reward'},pc:{ko:'MD 1만원 구매당 1개',zh:'購買周邊每滿1萬韓元贈1張',en:'1 per 10,000 won of MD'},ps:{ko:'MD 5만원 구매당 1개',zh:'購買周邊每滿5萬韓元贈1張',en:'1 per 50,000 won of MD'}};
+function srcOf(c){if(c.src)return nm(c.src);const k=c.id.startsWith('pc')?'pc':c.id.startsWith('ps')?'ps':c.cat;if(SRC[k])return nm(SRC[k]);const k2=CFG.cats.find(x=>x.id===c.cat);return k2?nm(k2.name):''}
+let lpT=0,lpHit=0,lpX=0,lpY=0,tipT=0;
+function showTip(id){const c=CFG.cards.find(x=>x.id===id);if(!c)return;let e=$('tip');if(!e){e=document.createElement('div');e.id='tip';document.body.appendChild(e)}
+  e.innerHTML=`<b></b><span></span>`;e.firstChild.textContent=nm(c.name);e.lastChild.textContent=t('srcL')+': '+srcOf(c);e.classList.add('on');clearTimeout(tipT);tipT=setTimeout(hideTip,3000)}
+function hideTip(){const e=$('tip');if(e)e.classList.remove('on')}
+function cardTap(id){if(lpHit){lpHit=0;return}hideTip();bump(id,1)}
+(function(){const g=document.getElementById('cgrid');if(!g)return;
+  const stop=()=>{clearTimeout(lpT)};
+  g.addEventListener('pointerdown',e=>{const d=e.target.closest('.cd');if(!d||e.target.closest('.mn'))return;lpHit=0;lpX=e.clientX;lpY=e.clientY;stop();lpT=setTimeout(()=>{lpHit=1;showTip(d.dataset.id)},450)});
+  g.addEventListener('pointermove',e=>{if(Math.abs(e.clientX-lpX)>8||Math.abs(e.clientY-lpY)>8)stop()});
+  ['pointerup','pointercancel','pointerleave'].forEach(n=>g.addEventListener(n,stop));
+  g.addEventListener('contextmenu',e=>{if(e.target.closest('.cd'))e.preventDefault()});
+})();
+function setC(c){S.cat=c;save();renderCol()}
+function setCols(n){S.cols=n;save();renderCol()}
+function setF(f){S.flt=f;save();renderCol()}
+function renderCol(){
+  const n=CFG.cards.filter(c=>have(c.id)>0).length,N=CFG.cards.length;
+  $('flt').innerHTML='<div class="seg">'+[['all',t('all')],['miss',t('miss')],['dup',t('dup')]].map(f=>`<button class="${S.flt===f[0]?'on':''}" onclick="setF('${f[0]}')">${f[1]}</button>`).join('')+'</div><span id="csel"></span>';
+  $('cflt').innerHTML=`<button class="btn ${S.cat==='all'?'on':''}" onclick="setC('all')"><span>${t('all')}</span><small>${n}/${N}</small></button>`+CFG.cats.map(k=>{const a=CFG.cards.filter(c=>c.cat===k.id);return `<button class="btn ${S.cat===k.id?'on':''}" onclick="setC('${k.id}')"><span>${nm(k.name)}</span><small>${a.filter(c=>have(c.id)>0).length}/${a.length}</small></button>`}).join('');
+  const cols=Math.min(6,Math.max(3,S.cols||4));
+  $('csel').innerHTML=`<select class="dd" onchange="setCols(+this.value)">${[3,4,5,6].map(c=>`<option value="${c}" ${cols===c?'selected':''}>${t('rowN').replace('{n}',c)}</option>`).join('')}</select>`;
+  $('cgrid').style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
+  const list=CFG.cards.filter(c=>(S.cat==='all'||c.cat===S.cat)&&(S.flt==='all'||(S.flt==='miss'&&!have(c.id))||(S.flt==='dup'&&have(c.id)>1)));
+  $('cgrid').innerHTML=list.map(c=>`<div class="cd ${have(c.id)?'':'miss'}" data-id="${c.id}" onclick="cardTap('${c.id}')">${have(c.id)?`<span class="bd">×${have(c.id)}</span><button class="mn" onclick="bump('${c.id}',-1,event)">−</button>`:''}${th(c)}<div class="n">${nm(c.name)}</div></div>`).join('');
+}
+
+/* ===== 교환 이미지 ===== */
+function lists(){const g=[],w=[];CFG.cards.forEach(c=>{const h=have(c.id);if(h>1)g.push([c,h-1]);if(h===0)w.push([c,0])});return{g,w}}
+function tog(id){S.ex[id]=!S.ex[id];save();renderEx()}
+const xcols=()=>Math.min(6,Math.max(3,S.xcols||3));
+function setXCols(n){S.xcols=n;save();renderEx()}
+const xm=()=>S.xmode==='give'?'give':'trade';
+function xlists(){const {g,w}=lists(),f=a=>!S.xcat||S.xcat==='all'||a[0].cat===S.xcat;return{g:g.filter(f),w:w.filter(f)}}
+function setXMode(m){S.xmode=m;save();renderEx()}
+function setXC(c){S.xcat=c;save();renderEx()}
+function renderEx(){
+  const trade=xm()==='trade',all=lists(),cnt=k=>[...all.g,...(trade?all.w:[])].filter(a=>k==='all'||a[0].cat===k).length;
+  $('xflt').innerHTML=['all',...CFG.cats.map(k=>k.id)].map(k=>`<button class="btn ${(S.xcat||'all')===k?'on':''}" onclick="setXC('${k}')"><span>${k==='all'?t('all'):nm(CFG.cats.find(c=>c.id===k).name)}</span><small>${cnt(k)}</small></button>`).join('');
+  $('hw').style.display=$('exw').style.display=trade?'':'none';
+  const {g,w}=xlists(),cell=([c,n])=>`<div class="cd ${S.ex[c.id]?'off':''}" onclick="tog('${c.id}')">${n?`<span class="bd">×${n}</span>`:''}${th(c)}<div class="n">${nm(c.name)}</div></div>`;
+  $('exg').innerHTML=g.map(cell).join('')||`<span class="tip">${t('empty')}</span>`;
+  $('exw').innerHTML=w.map(cell).join('')||`<span class="tip">${t('empty')}</span>`;
+  const xc=xcols();
+  $('exg').style.gridTemplateColumns=$('exw').style.gridTemplateColumns=`repeat(${xc},minmax(0,1fr))`;
+  $('xsel').innerHTML=`<div class="seg">${[['trade',t('mTrade')],['give',t('mGive')]].map(f=>`<button class="${xm()===f[0]?'on':''}" onclick="setXMode('${f[0]}')">${f[1]}</button>`).join('')}</div><select class="dd" onchange="setXCols(+this.value)">${[3,4,5,6].map(c=>`<option value="${c}" ${xc===c?'selected':''}>${t('rowN').replace('{n}',c)}</option>`).join('')}</select>`;
+  draw();
+}
+const IM={};let tm;
+function img(src){if(!src)return null;let i=IM[src];if(!i){i=IM[src]=new Image();i.crossOrigin='anonymous';i.onload=()=>{clearTimeout(tm);tm=setTimeout(draw,60)};i.src=src}return i.complete&&i.naturalWidth?i:null}
+function rr(x,p,y,w,h,r){x.beginPath();x.roundRect?x.roundRect(p,y,w,h,r):x.rect(p,y,w,h)}
+function draw(){
+  const trade=xm()==='trade',{g,w}=xlists(),G=g.filter(a=>!S.ex[a[0].id]),W=w.filter(a=>!S.ex[a[0].id]);
+  const cols=xcols(),cell=Math.round(170-(cols-3)*14),gap=cols>4?10:18,kk=cell/170,pad=50,mid=trade?60:0,half=cols*cell+(cols-1)*gap,CW=pad*2+half*(trade?2:1)+mid;
+  const rows=Math.max(1,Math.ceil((trade?Math.max(G.length,W.length):G.length)/cols)),top=160,CH=top+rows*(cell*4/3+46)+50;
+  const c=$('cv'),x=c.getContext('2d');c.width=CW;c.height=CH;
+  const ink='#1e2340',acc='#e4456e',ok='#2a9d8f';
+  x.fillStyle='#eef0f6';x.fillRect(0,0,CW,CH);
+  x.fillStyle=ink;x.fillRect(0,0,CW,12);
+    x.font='600 26px "Pretendard","Noto Sans KR","Noto Sans TC",sans-serif';x.fillStyle=acc;x.fillText($('hdl').value,pad,70);
+  x.fillStyle=ink;x.font='400 22px "Pretendard","Noto Sans KR","Noto Sans TC",sans-serif';x.fillText($('note').value,pad,108);
+  const sec=(items,ox,label,col)=>{
+    x.fillStyle=col;x.font='800 28px "Pretendard","Noto Sans KR","Noto Sans TC",sans-serif';x.fillText(label,ox,top-12);
+    items.forEach(([k,n],i)=>{
+      const cx=ox+(i%cols)*(cell+gap),cy=top+Math.floor(i/cols)*(cell*4/3+46),ch=k.sq?cell:cell*4/3;
+      x.save();rr(x,cx,cy,cell,ch,10);x.clip();
+      x.fillStyle=`hsl(${hue(k.id)} 60% 86%)`;x.fillRect(cx,cy,cell,ch);
+      const im=img(k.img);
+      if(im){const s=Math.max(cell/im.naturalWidth,ch/im.naturalHeight),dw=im.naturalWidth*s,dh=im.naturalHeight*s;x.drawImage(im,cx+(cell-dw)/2,cy+(ch-dh)/2,dw,dh)}
+      else{x.fillStyle='rgba(30,35,64,.5)';x.font='800 40px sans-serif';x.textAlign='center';x.fillText(nm(k.name).slice(0,3),cx+cell/2,cy+ch/2+14);x.textAlign='left'}
+      x.restore();
+      if(n>0){x.fillStyle=acc;rr(x,cx+cell-58*kk,cy+8,50*kk,30*kk,15*kk);x.fill();x.fillStyle='#fff';x.font='800 '+Math.round(20*kk)+'px sans-serif';x.textAlign='center';x.fillText('×'+n,cx+cell-33*kk,cy+30*kk);x.textAlign='left'}
+      x.fillStyle=ink;x.font='500 '+Math.round(20*kk)+'px "Pretendard","Noto Sans KR","Noto Sans TC",sans-serif';x.textAlign='center';x.fillText(nm(k.name),cx+cell/2,cy+ch+28,cell);x.textAlign='left';
+    });
+  };
+  sec(G,pad,t('give'),ok);
+  if(trade){sec(W,pad+half+mid,t('want'),acc);x.fillStyle=ink;x.globalAlpha=.25;x.fillRect(pad+half+mid/2-1,top,2,CH-top-40);x.globalAlpha=1}
+}
+function dl(){
+  try{$('cv').toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='trade.png';a.click()},'image/png')}
+  catch(e){alert(t('err'))}
+}
+
+/* ===== 일정 달력 ===== */
+const SC=CFG.sched,pad2=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+const pd=x=>{const [y,m,d]=x.split('-').map(Number);return new Date(y,m-1,d)};
+const mins=h=>{const [a,b]=h.split(':').map(Number);return a*60+b},hm=m=>pad2(Math.floor(m/60))+':'+pad2(m%60);
+const isResOnly=x=>!!SC.resOnly&&x>=SC.resOnly.from&&x<=SC.resOnly.to;
+const inRange=x=>x>=SC.start&&x<=SC.end&&!(SC.closed||[]).includes(x);
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const isPocha=(x,st)=>SC.pochaDays.includes(pd(x).getDay())&&mins(st)>=mins(SC.pochaFrom);
+function slots(x){const dw=pd(x).getDay(),close=mins(SC.close[dw]||SC.close.def),out=[];for(let m=mins(SC.open);m+SC.minutes<=close;m+=SC.step)out.push({n:out.length+1,st:hm(m),en:hm(m+SC.minutes),pocha:isPocha(x,hm(m))});return out}
+function setMonth(m){S.cm=m;save();renderCal()}
+function pick(x){S.cd=x;S.cm=x.slice(0,7);save();renderCal()}
+function book(x,st){S.res=S.res||{};const r=S.res[x]=S.res[x]||{};if(r[st])delete r[st];else r[st]={memo:''};if(!Object.keys(r).length)delete S.res[x];save();renderCal()}
+function memo(x,st,v){S.res[x][st].memo=v;save()}
+function renderCal(){
+  const tdy=ymd(new Date());if(!S.cd)S.cd=inRange(tdy)?tdy:SC.start;if(!S.cm)S.cm=S.cd.slice(0,7);
+  const loc={ko:'ko-KR',zh:'zh-TW',en:'en-US'}[lang],wd=lang==='ko'?['일','월','화','수','목','금','토']:lang==='zh'?['日','一','二','三','四','五','六']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months=[];for(let d=pd(SC.start.slice(0,7)+'-01'),e=pd(SC.end.slice(0,7)+'-01');d<=e;d=new Date(d.getFullYear(),d.getMonth()+1,1))months.push(ymd(d).slice(0,7));
+  $('mhead').innerHTML=months.map(m=>`<button class="btn ${S.cm===m?'on':''}" onclick="setMonth('${m}')">${pd(m+'-01').toLocaleDateString(loc,{year:'numeric',month:'long'})}</button>`).join('');
+  const first=pd(S.cm+'-01'),dim=new Date(first.getFullYear(),first.getMonth()+1,0).getDate();
+  let g=wd.map(w=>`<div class="wd">${w}</div>`).join('')+'<div></div>'.repeat(first.getDay());
+  for(let d=1;d<=dim;d++){const x=S.cm+'-'+pad2(d),ok=inRange(x),n=Object.keys((S.res||{})[x]||{}).length;
+    g+=`<button class="day ${ok?'':'off'} ${S.cd===x?'sel':''}" ${ok?`onclick="pick('${x}')"`:'disabled'}><b>${d}</b>${ok&&SC.pochaDays.includes(pd(x).getDay())?'<i class="pc"></i>':''}${n?`<span class="rb">${n}</span>`:''}${ok&&isResOnly(x)?'<i class="ro"></i>':''}</button>`}
+  $('cg').innerHTML=g;
+  const x=S.cd,r=(S.res||{})[x]||{};
+  let p=`<h2>${pd(x).toLocaleDateString(loc,{month:'long',day:'numeric',weekday:'short'})}</h2>`;
+  if(inRange(x)&&isResOnly(x))p+=`<p class="rnote">${t('resOnly')}</p>`;
+  p+=inRange(x)?slots(x).map(sl=>{const b=r[sl.st];return `<div class="slot ${b?'mine':''}"><div><b>${t('slotN').replace('{n}',sl.n)} ${sl.st}~${sl.en}</b> <span class="tag ${sl.pocha?'pc':''}">${sl.pocha?t('slotPocha'):t('slotCafe')}</span></div><button class="btn ${b?'pri':''}" onclick="book('${x}','${sl.st}')">${b?t('booked'):t('book')}</button>${b?`<input type="text" value="${esc(b.memo)}" placeholder="${t('memoPh')}" oninput="memo('${x}','${sl.st}',this.value)">`:''}</div>`}).join(''):`<p class="tip">${t('closedDay')}</p>`;
+  $('dayp').innerHTML=p;
+  const all=[];Object.keys(S.res||{}).sort().forEach(d=>Object.keys(S.res[d]).sort().forEach(st=>all.push([d,st,S.res[d][st]])));
+  $('myres').innerHTML=`<h2>${t('myRes')}</h2>`+(all.length?all.map(([d,st,b])=>`<div class="rc"><div style="display:flex;justify-content:space-between;gap:8px"><span><b>${pd(d).toLocaleDateString(loc,{month:'short',day:'numeric',weekday:'short'})}</b> ${t('slotN').replace('{n}',(slots(d).find(x=>x.st===st)||{}).n||'')} ${st}~${hm(mins(st)+SC.minutes)} <span class="tag ${isPocha(d,st)?'pc':''}">${isPocha(d,st)?t('slotPocha'):t('slotCafe')}</span></span><span><button class="btn" onclick="pick('${d}')">↗</button> <button class="btn" onclick="book('${d}','${st}')">✕</button></span></div>${b.memo?`<small>${esc(b.memo)}</small>`:''}</div>`).join(''):`<p class="tip">${t('noRes')}</p>`);
+}
+
+/* ===== 공통 ===== */
+function applyLang(){
+  document.documentElement.lang={ko:'ko',zh:'zh-Hant',en:'en'}[lang];
+  document.title=nm(CFG.title);
+  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
+  document.querySelectorAll('[data-p]').forEach(e=>e.placeholder=t(e.dataset.p));
+  document.querySelectorAll('.ml.lg').forEach(b=>b.classList.toggle('on',b.dataset.l===lang));
+  renderCalc();renderCol();renderEx();renderCal();
+}
+function show(id){document.querySelectorAll('.tab').forEach(e=>e.classList.toggle('on',e.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));$('sum').style.display=id==='calc'?'block':'none';if(id==='ex')draw()}
+function toggleMenu(e){e.stopPropagation();$('hmenu').hidden=!$('hmenu').hidden}
+document.addEventListener('click',e=>{if(!e.target.closest('.hm'))$('hmenu').hidden=true});
+function saveData(){try{const b=new Blob([JSON.stringify({v:1,lang,S},null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='collab-cafe-save.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}catch(e){alert(t('saveErr'))}$('hmenu').hidden=true}
+function pickFile(){$('ifile').click()}
+$('ifile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d.S!=='object'||!d.S||Array.isArray(d.S))throw 0;if(!confirm(t('loadAsk')))return;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,{cat:'all',fq:{},qty:{},have:{},ex:{},perR:false,flt:'all'});Object.keys(d.S).forEach(k=>{if(k!=='__proto__'&&k!=='constructor'&&k!=='prototype')S[k]=d.S[k]});if(['ko','zh','en'].includes(d.lang))lang=d.lang;save();applyLang();$('hmenu').hidden=true}catch(err){alert(t('loadErr'))}};r.readAsText(f)};
+document.querySelectorAll('.ml.lg').forEach(b=>b.onclick=()=>{lang=b.dataset.l;save();applyLang()});
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+$('hdl').oninput=$('note').oninput=draw;
+applyLang();show('calc');
+</script>
+</body>
+</html>
